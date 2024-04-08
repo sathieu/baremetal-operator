@@ -164,7 +164,7 @@ if [[ "${DEPLOY_IRONIC}" == "true" ]]; then
     --namespace=baremetal-operator-system --nameprefix=baremetal-operator-
 
     if [ "${DEPLOY_BASIC_AUTH}" == "true" ]; then
-        ${KUSTOMIZE} edit add secret ironic-htpasswd --from-file=htpasswd=ironic-htpasswd
+        ${KUSTOMIZE} edit add secret ironic-htpasswd --disableNameSuffixHash --from-file=htpasswd=ironic-htpasswd
 
         if [[ "${DEPLOY_TLS}" == "true" ]]; then
             # Basic-auth + TLS is special since TLS also means reverse proxy, which affects basic-auth.
@@ -203,7 +203,7 @@ if [[ "${DEPLOY_BMO}" == "true" ]]; then
     if [ "${DEPLOY_BASIC_AUTH}" == "true" ]; then
         ${KUSTOMIZE} edit add component ../../components/basic-auth
         # These files are created below
-        ${KUSTOMIZE} edit add secret ironic-credentials \
+        ${KUSTOMIZE} edit add secret ironic-credentials --disableNameSuffixHash \
             --from-file=username=ironic-username --from-file=password=ironic-password
     fi
 
@@ -221,7 +221,7 @@ if [[ "${DEPLOY_BMO}" == "true" ]]; then
     pushd "${TEMP_BMO_OVERLAY}"
     # This is to keep the current behavior of using the ironic.env file for the configmap
     cp "${SCRIPTDIR}/config/default/ironic.env" "${TEMP_BMO_OVERLAY}/ironic.env"
-    ${KUSTOMIZE} edit add configmap ironic --behavior=create --from-env-file=ironic.env
+    ${KUSTOMIZE} edit add configmap ironic --disableNameSuffixHash --behavior=create --from-env-file=ironic.env
     # shellcheck disable=SC2086
     ${KUSTOMIZE} build "${TEMP_BMO_OVERLAY}" | kubectl apply ${KUBECTL_ARGS} -f -
     popd
@@ -245,7 +245,7 @@ if [[ "${DEPLOY_IRONIC}" == "true" ]]; then
     fi
     sed -i "s/IRONIC_HOST_IP/${IRONIC_HOST_IP}/g" "${SCRIPTDIR}/ironic-deployment/components/tls/certificate.yaml"
     sed -i "s/MARIADB_HOST_IP/${MARIADB_HOST_IP}/g" "${SCRIPTDIR}/ironic-deployment/components/mariadb/certificate.yaml"
-    ${KUSTOMIZE} edit add configmap ironic-bmo-configmap --behavior=create --from-env-file=ironic_bmo_configmap.env
+    ${KUSTOMIZE} edit add configmap ironic-bmo-configmap --disableNameSuffixHash --behavior=create --from-env-file=ironic_bmo_configmap.env
     # shellcheck disable=SC2086
     ${KUSTOMIZE} build "${TEMP_IRONIC_OVERLAY}" | kubectl apply ${KUBECTL_ARGS} -f -
     popd
